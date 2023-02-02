@@ -1,6 +1,7 @@
 using LenkieBooks.Data;
 using LenkieBooks.Interfaces;
 using LenkieBooks.Models;
+using LenkieBooks.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -37,9 +38,9 @@ public class LibraryController : ControllerBase
     }
     
     [HttpPost("book")]
-    public async Task<bool> AddBook(Book book)
+    public async Task<bool> AddBook(AddBookRequest addBookRequest)
     {
-        var newBook = await _bookService.AddBook(book);
+        var newBook = await _bookService.AddBook(addBookRequest);
         return newBook;
     }
     
@@ -54,10 +55,16 @@ public class LibraryController : ControllerBase
         return book;
     }
     
-    [HttpGet("book/search/{name}")]
+    [HttpGet("search/{name}")]
     public async Task<List<Book>> SearchBook(string name)
     {
         return await _bookService.SearchBook(name);
+    }
+    
+    [HttpPost("reserve")]
+    public async Task<BookResponse> ReserveBook(BookRequest bookRequest)
+    {
+        return await _bookService.ReserveBook(bookRequest);;
     }
     
 }

@@ -1,4 +1,5 @@
 using LenkieBooks.Models;
+using LenkieBooks.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LenkieBooks.Interfaces;
@@ -22,9 +23,9 @@ public interface IBookService
     /// <summary>
     /// Adds a new book to a list of existing books
     /// </summary>
-    /// <param name="book"></param>
+    /// <param name="addBookRequest"></param>
     /// <returns></returns>
-    Task<bool> AddBook(Book book);
+    Task<bool> AddBook(AddBookRequest addBookRequest);
 
     /// <summary>
     /// Remove a book from the library
@@ -39,4 +40,11 @@ public interface IBookService
     /// <param name="name"></param>
     /// <returns></returns>
     Task<List<Book>> SearchBook(string name);
+
+    /// <summary>
+    /// Set a 24hr reservation slot for a specific book
+    /// </summary>
+    /// <param name="bookRequest"></param>
+    /// <returns></returns>
+    Task<BookResponse> ReserveBook(BookRequest bookRequest);
 }

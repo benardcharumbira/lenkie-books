@@ -4,10 +4,10 @@ namespace LenkieBooks.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController : ControllerBase
+public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
-    public UserController(IUserService userService)
+    public AuthController(IUserService userService)
     {
         _userService = userService;
     }

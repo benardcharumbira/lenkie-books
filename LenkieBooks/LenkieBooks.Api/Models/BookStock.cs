@@ -3,12 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace LenkieBooks.Models;
 
-public class Book
+public class BookStock
 {
     [Key]
+    public int BookStockId { get; set; }
+    public Book Book { get; set; }
     public int BookId { get; set; }
-    public string Name { get; set; }
-    public string Author { get; set; }
-    public string PublicationYear { get; set; }
     public int StockCount { get; set; }
 }
