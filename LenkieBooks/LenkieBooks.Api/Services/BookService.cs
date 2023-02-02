@@ -10,9 +10,9 @@ namespace LenkieBooks.Services;
 
 public class BookService : IBookService
 {
-    private readonly BookContext _context;
+    private readonly LibraryContext _context;
 
-    public BookService(BookContext context)
+    public BookService(LibraryContext context)
     {
         _context = context;
     }
@@ -78,7 +78,7 @@ public class BookService : IBookService
             ReservationDate = DateTime.Now,
             UserId = bookRequest.UserId
         });
-        book.StockCount -= book.StockCount;
+        book.StockCount = book.StockCount - 1;
         await _context.SaveChangesAsync();
         return new BookResponse()
         {

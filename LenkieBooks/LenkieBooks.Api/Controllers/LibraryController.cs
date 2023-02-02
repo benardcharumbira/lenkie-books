@@ -2,18 +2,20 @@ using LenkieBooks.Data;
 using LenkieBooks.Interfaces;
 using LenkieBooks.Models;
 using LenkieBooks.Models.Request;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LenkieBooks.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class LibraryController : ControllerBase
 {
     private readonly IBookService _bookService;
 
-    public LibraryController(IBookService bookService, BookContext context)
+    public LibraryController(IBookService bookService)
     {
         _bookService = bookService;
     }
@@ -66,5 +68,5 @@ public class LibraryController : ControllerBase
     {
         return await _bookService.ReserveBook(bookRequest);;
     }
-    
+
 }
