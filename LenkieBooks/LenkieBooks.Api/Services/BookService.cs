@@ -180,4 +180,30 @@ public class BookService : IBookService
             };
         }
     }
+
+    public async Task SendAvailabilityReminders()
+    {
+        var reminders = await _context.BookAvailabilityReminders
+            .Where(x => x.AvailabilityDate < DateTime.Now)
+            .ToListAsync();
+
+        foreach (var reminder in reminders)
+        {
+            // Use service like SendGrid to send email reminder to user
+            // Message: Hello, the book you enquired about is now available
+        }
+    }
+    
+    public async Task SendBookReturnReminder()
+    {
+        var reminders = await _context.BookRentals
+            .Where(x => x.DueDate < DateTime.Now)
+            .ToListAsync();
+
+        foreach (var reminder in reminders)
+        {
+            // Use service like SendGrid to send email reminder to user
+            // Message: Hello, the book you borrowed is due
+        }
+    }
 }

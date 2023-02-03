@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Hangfire;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,8 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddDbContext<LibraryContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHangfire(x => x.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHangfireServer();
 
 builder.Services.AddIdentityCore<IdentityUser>(options =>
     {
@@ -88,15 +91,16 @@ builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseHttpsRedirection();
+app.UseCors("MyPolicy");
 app.UseAuthorization();
+app.UseHangfireDashboard();
+RecurringJob.AddOrUpdate<IBookService>("BookAvailabilityReminder", x => x.SendAvailabilityReminders(),Cron.Daily);
+RecurringJob.AddOrUpdate<IBookService>("DueDateReminder", x => x.SendAvailabilityReminders(),Cron.Daily);
 app.MapControllers();
 app.Run();
+

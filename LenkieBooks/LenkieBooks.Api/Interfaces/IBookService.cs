@@ -53,4 +53,19 @@ public interface IBookService
     /// <param name="bookRequest"></param>
     /// <returns></returns>
     Task<BookResponse> BorrowBook(BookRequest bookRequest);
+    
+    /// <summary>
+    /// Triggered by background job to check for pending reminders
+    /// </summary>
+    /// <returns></returns>
+    Task SendAvailabilityReminders();
+    
+    
+    /// <summary>
+    /// Sends a reminder to a user that a book they have borrowed is due
+    /// </summary>
+    /// <returns></returns>
+    Task SendBookReturnReminder();
+
+
 }
