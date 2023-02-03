@@ -7,6 +7,10 @@ and when a book they previosly enquired about is available for borrowing.
 
 Live demo: https://library-api.azurewebsites.net/swagger/index.html
 
+![Lenkie-Books-Api](assets/swagger.png)
+
+Hangfire:
+
 ![Lenkie-Books-Api](assets/hangfire.png)
 
 # Technologies Used
