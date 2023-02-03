@@ -32,7 +32,20 @@ You can run the solution by following the steps below:
  dotnet run --project LenkieBooks.Api 
 ```
 
-4. Open a browser, navigate to http://localhost:7084/swagger/index.html then view the Open API documentation. 
+4. Open a browser, navigate to http://localhost:7084/swagger/index.html then view the Open API documentation.
+
+# Testing endpoints on live environment
+
+You don't have to run the project locally. You may access the live demo link provided in the section below 
+to test the endpoints. All Library endpoints require authentication and authorization. Therefore, to test, these 
+are the steps:
+
+1. Create/Register new account
+2. Login
+3. Copy token from login response
+4. Click the authorize button on the top right
+5. Paste token in text field in this format "Bearer {token}"
+6. After inserting the token all endpoints will now be available
    
 ## Deployments
 
