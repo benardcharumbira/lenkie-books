@@ -11,10 +11,12 @@ namespace LenkieBooks.Services;
 public class BookService : IBookService
 {
     private readonly LibraryContext _context;
+    private readonly ILogger<BookService> _logger;
 
-    public BookService(LibraryContext context)
+    public BookService(LibraryContext context, ILogger<BookService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<Book>> GetBooks()
@@ -49,6 +51,7 @@ public class BookService : IBookService
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
         }
+
         return book;
     }
 
@@ -66,66 +69,115 @@ public class BookService : IBookService
 
     public async Task<BookResponse> ReserveBook(BookRequest bookRequest)
     {
-        var book = await _context.Books.FindAsync(bookRequest.BookId);
-        if (book is not { StockCount: > 0 })
+        try
+        {
+            var book = await _context.Books.FindAsync(bookRequest.BookId);
+            if (book is not { StockCount: > 0 })
+            {
+                var existingRental = await _context.BookRentals
+                    .FirstOrDefaultAsync(x => x.UserId == bookRequest.UserId
+                                   && x.BookId == bookRequest.BookId
+                                   && !x.IsReturned);
+                
+                var hasActiveReminder = await _context.BookAvailabilityReminders
+                    .AnyAsync(x => x.UserId == bookRequest.UserId
+                                              && x.BookId == bookRequest.BookId
+                                              && x.IsActive);
+
+                if (existingRental != null && !hasActiveReminder)
+                {
+                    _context.BookAvailabilityReminders.Add(new BookAvailabilityReminder()
+                    {
+                        BookId = bookRequest.BookId,
+                        UserId = bookRequest.UserId,
+                        AvailabilityDate = existingRental.DueDate.AddDays(1),
+                        IsActive = true
+                    });
+                    await _context.SaveChangesAsync();
+                }
+
+                return new BookResponse()
+                {
+                    Message = "Book not found or stock is finished, we will let you know when it is available."
+                };
+            }
+
+            _context.BookReservations.Add(new BookReservation()
+            {
+                BookId = bookRequest.BookId,
+                ReservationDate = DateTime.Now,
+                UserId = bookRequest.UserId
+            });
+            book.StockCount -= 1;
+            await _context.SaveChangesAsync();
             return new BookResponse()
             {
-                Message = "Book not found or stock is finished, please contact librarian."
+                Message = "Reservation successful, please note reservation will be cancelled in 24hrs.",
+                IsRequestApproved = true
             };
-        _context.BookReservations.Add(new BookReservation()
+        }
+        catch (Exception e)
         {
-            BookId = bookRequest.BookId,
-            ReservationDate = DateTime.Now,
-            UserId = bookRequest.UserId
-        });
-        book.StockCount = book.StockCount - 1;
-        await _context.SaveChangesAsync();
-        return new BookResponse()
-        {
-            Message = "Reservation successful, please note reservation will be cancelled in 24hrs.",
-            IsRequestApproved = true
-        };
+            _logger.LogError(e, $"Failed to reserve book for user: {bookRequest.UserId}");
+            return new BookResponse()
+            {
+                Message = "Failed to reserve book."
+            };
+        }
     }
-    
+
     public async Task<BookResponse> BorrowBook(BookRequest bookRequest)
     {
-        var book = await _context.Books.FindAsync(bookRequest.BookId);
-        if (book is not { StockCount: > 0 })
+        try
+        {
+            var book = await _context.Books.FindAsync(bookRequest.BookId);
+            if (book is not { StockCount: > 0 })
+                return new BookResponse()
+                {
+                    Message = "Book not found or stock is finished, please contact librarian."
+                };
+
+            var activeReservation = await _context.BookReservations
+                .FirstOrDefaultAsync(x => x.BookId == bookRequest.BookId
+                                          && x.UserId == bookRequest.UserId);
+
+            var existingRental = await _context.BookRentals
+                .AnyAsync(x => x.BookId == bookRequest.BookId
+                               && x.UserId == bookRequest.UserId
+                               && !x.IsReturned);
+
+            if (activeReservation == null)
+                book.StockCount -= 1;
+
+
+            if (existingRental)
+                return new BookResponse()
+                {
+                    Message = "You have already borrowed this book"
+                };
+
+            _context.BookRentals.Add(new BookRental()
+            {
+                BookId = bookRequest.BookId,
+                DateRetrieved = DateTime.Now,
+                DueDate = DateTime.Now.AddDays(30),
+                UserId = bookRequest.UserId
+            });
+
+            await _context.SaveChangesAsync();
             return new BookResponse()
             {
-                Message = "Book not found or stock is finished, please contact librarian."
+                Message = "Request successful, please come during our operating hours to collect your book.",
+                IsRequestApproved = true
             };
-
-        var activeReservations = await _context.BookReservations
-            .Where(x => x.BookId == bookRequest.BookId)
-            .ToListAsync();
-        
-        
-        // WHAT SHOULD WE CHECK!
-
-        // foreach (var activeReservation in activeReservations)
-        // {
-        //     
-        // }
-        //
-        // if (activeReservation != null || activeReservation?.UserId == bookRequest.UserId)
-        // {
-        //     _context.BookRentals.Add(new BookRental()
-        //     {
-        //         BookId = bookRequest.BookId,
-        //         DateRetrieved = DateTime.Now,
-        //         DueDate = DateTime.Now.AddDays(30)
-        //     });
-        // }
-        //
-        // if(activeReservation?.UserId != bookRequest.UserId)
-        //     book.StockCount -= book.StockCount;
-        
-        await _context.SaveChangesAsync();
-        return new BookResponse()
+        }
+        catch (Exception e)
         {
-            Message = "Request successful, please come during our operating hours to collect your book.",
-            IsRequestApproved = true
-        };
+            _logger.LogError(e, $"Failed to request book rental by user: {bookRequest.UserId}");
+            return new BookResponse()
+            {
+                Message = "Failed to request book rental."
+            };
+        }
     }
 }

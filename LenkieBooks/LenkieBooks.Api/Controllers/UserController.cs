@@ -12,16 +12,13 @@ namespace LenkieBooks.Controllers;
 public class UserController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly IAuthService _authService; 
     private readonly IJwtService _jwtService;
 
     public UserController(
         UserManager<IdentityUser> userManager, 
-        IAuthService authService,
         IJwtService jwtService)
     {
         _userManager = userManager;
-        _authService = authService;
         _jwtService = jwtService;
     }
 

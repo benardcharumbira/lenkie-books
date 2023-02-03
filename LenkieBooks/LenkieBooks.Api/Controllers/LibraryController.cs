@@ -68,5 +68,11 @@ public class LibraryController : ControllerBase
     {
         return await _bookService.ReserveBook(bookRequest);;
     }
+  
+    [HttpPost("borrow")]
+    public async Task<BookResponse> BorrowBook(BookRequest bookRequest)
+    {
+        return await _bookService.BorrowBook(bookRequest);;
+    }
 
 }

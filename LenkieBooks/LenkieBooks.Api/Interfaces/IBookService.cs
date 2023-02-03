@@ -11,8 +11,7 @@ public interface IBookService
     /// </summary>
     /// <returns></returns>
     Task<List<Book>> GetBooks();
-
-
+    
     /// <summary>
     /// Retrieves a single book by id
     /// </summary>
@@ -47,4 +46,11 @@ public interface IBookService
     /// <param name="bookRequest"></param>
     /// <returns></returns>
     Task<BookResponse> ReserveBook(BookRequest bookRequest);
+    
+    /// <summary>
+    /// Processes request to rent book
+    /// </summary>
+    /// <param name="bookRequest"></param>
+    /// <returns></returns>
+    Task<BookResponse> BorrowBook(BookRequest bookRequest);
 }
